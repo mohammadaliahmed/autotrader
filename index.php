@@ -250,7 +250,7 @@ function tbare_wordpress_plugin_demo($atts)
                 echo '<a class="border  border-success m-1" href = "?make=' . $make . '&model=' . $model . '&goto=' . $page_number . '">' . $page_number . ' </a>';
 
             } else {
-                echo '<a class="border m-1" href = "?make=' . $make . '&model=' . $model . '&goto=' . $page_number . '">' . $page_number . ' </a>';
+                echo '<a class="border m-1" href = "?make=' . $make . '&model=' . $model . '&goto=' . $page_number . '&submit">' . $page_number . ' </a>';
 
             }
         }

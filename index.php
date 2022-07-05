@@ -30,6 +30,8 @@ function tbare_wordpress_plugin_demo($atts)
     $carsMake = $wpdb->get_results("Select distinct(make) from wp_cars_data order by make asc");
     $make = $_GET['make'];
     $model = $_GET['model'];
+
+
     $limit = 10;
     ?>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
@@ -43,10 +45,12 @@ function tbare_wordpress_plugin_demo($atts)
             <center>
                 <h3 style="color:#fff;margin: 20px">Search cars</h3>
             </center>
+            
             <div class="row p-5">
+            
 
                 <div class="col-sm-12 col-lg-5">
-                    <label class="text-white">Select car model</label>
+                    <label class="text-white form-label"  for="car_make">Select car model</label>
                     <select class="form-select  h-100 w-100" name="make" id="car_make">
                         <option data-dropdownvalue="-1" value="" data-count="-1" class="dropdown-top-row">Any Make
                         </option>
@@ -73,9 +77,9 @@ function tbare_wordpress_plugin_demo($atts)
                     </select>
                 </div>
                 <div class="col-sm-12 col-lg-5">
-                    <label id="modelLabel" class="text-white">Select car make</label>
+                    <label id="modelLabel" class="text-white form-label" for="car_moda">Select car make</label>
 
-                    <select class="form-select  h-100 w-100" name="model">
+                    <select class="form-select  h-100 w-100" name="model" id="car_moda">
                         <option data-dropdownvalue="-1" value="" data-count="-1"
                                 class="dropdown-top-row">Any Model
                         </option>
@@ -125,12 +129,40 @@ function tbare_wordpress_plugin_demo($atts)
             $('.stars').stars();
         });
     </script>
+      <script type="text/javascript">
+      function getCarMakes(val){
+          console.log(val);
+         $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'post',
+                    data: {
+                        action: 'data_fetch',
+                        "carMake": val
+                    },
+                    success: function (data) {
+                      
+                        var returnedData = JSON.parse(data);
+                        var opts = "";
+                        for (var key in returnedData) {
+                            if(returnedData[key].model=="<?=$model?>"){
+                                opts += "<option selected>" + returnedData[key].model + "</option>";
+                            }else{             
+                                opts += "<option>" + returnedData[key].model + "</option>";
+                            }
+                          }
+                        
+                        $("#car_model").html(opts);
+
+                    }
+                });
+      }
+      </script>
     <script type="text/javascript">
         window.onload = function () {
             var eSelect = document.getElementById('car_make');
             eSelect.onchange = function () {
 
-                console.log(eSelect.value);
+          
                 $.ajax({
                     url: '<?php echo admin_url('admin-ajax.php'); ?>',
                     type: 'post',
@@ -139,14 +171,13 @@ function tbare_wordpress_plugin_demo($atts)
                         "carMake": eSelect.value
                     },
                     success: function (data) {
-                        // console.log(data);
+                      
                         var returnedData = JSON.parse(data);
                         var opts = "";
                         for (var key in returnedData) {
-                            // console.log(returnedData[key].model);
                             opts += "<option>" + returnedData[key].model + "</option>";
                         }
-                        console.log(opts);
+                        
                         $("#car_model").html(opts);
 
                     }
@@ -164,8 +195,17 @@ function tbare_wordpress_plugin_demo($atts)
         $make = $_GET['make'];
         $model = $_GET['model'];
 
+        ?>
+<script>
+getCarMakes("<?= $make?>");
+</script>
+
+<?php
+
+
         $cars = $wpdb->get_results("Select count(*) as counta from wp_cars_data  where make like '%" . $make . "%' and 
-    model like '%" . $model . "%'");
+    model like '%" . $model . "%' and year=2022 and
+     title NOT LIKE '%2021%' and title NOT LIKE '%2020%'");
         $total_rows = $cars[0]->counta;
         $total_pages = ceil($total_rows / $limit);
 
@@ -178,7 +218,8 @@ function tbare_wordpress_plugin_demo($atts)
         $initial_page = ($page_number - 1) * $limit;
 
         $cars = $wpdb->get_results("select * from wp_cars_data where make like '%" . $make . "%' and 
-    model like '%" . $model . "%'  LIMIT " . $initial_page . ',' . $limit);
+    model like '%" . $model . "%' and year=2022 and
+     title NOT LIKE '%2021%' and title NOT LIKE '%2020%'  LIMIT " . $initial_page . ',' . $limit);
         foreach ($cars as $car) {
             ?>
             <div class="card bg-light m-3 p-2">
@@ -188,10 +229,10 @@ function tbare_wordpress_plugin_demo($atts)
                         <?php echo explode("|", $car->images)[0] ?>" width="300">
 
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-8">
                         <div class="proximity">
-                            <i class="fa fa-map-pin"></i>
-                            <span style="font-size:13px"><?php echo $car->location ?></span>
+                            
+                            
                         </div>
                         <div class="title">
                             <a href="<?php echo $car->url ?>">
@@ -201,17 +242,13 @@ function tbare_wordpress_plugin_demo($atts)
                         </div>
                         <div class="description">
 
-                            <span class="stars" data-rating="<?php echo $car->googleRating ?>"
-                                  data-num-stars="5"></span>
+                            
                             <br>
                             <small> <?php echo mb_strimwidth($car->description, 0, 250, "..."); ?></small>
 
                         </div>
                     </div>
-                    <div class="col-sm-2">
-                        <strong>$<?php echo number_format($car->price) ?></strong>
-
-                    </div>
+                   
                 </div>
                 <div class="row">
 
